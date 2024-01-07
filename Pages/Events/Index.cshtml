@@ -1,0 +1,32 @@
+@page "{id:int}"
+@using gcsharpRPC.Pages.Shared;
+@model gcsharpRPC.Pages.Polls.GetPollPageModel
+@{
+    var pollId = RouteData.Values["id"];
+}
+
+<h2>@(Model.Poll?.Title ?? "Not Found")</h2>
+
+@if (Model.Poll is not null)
+{
+    <h5>Actions</h5>
+    <form method="POST">
+        @if (Model._session is not null)
+        {
+            <a class="btn btn-warning btn-sm ms-1" type="submit" asp-page-handler="Delete" asp-route-id="@Model.Poll.Id">Delete</a>
+        }
+        @{
+            var guid = Model.Poll.PollGuid.ToString("N");
+            <a class="btn btn-primary btn-sm ms-1" asp-page="Join" asp-route-guid="@guid">Join</a>
+        }
+    </form>
+
+    @* <h6>Close</h6>
+    <form method="POST">
+        <button type="submit" asp-page-handler="ToggleClose" asp-route-id="@Model.Poll.Id">Close</button>
+    </form> *@
+}
+
+<div class="mt-3">
+    <partial name="_BackToListBtn" />
+</div>

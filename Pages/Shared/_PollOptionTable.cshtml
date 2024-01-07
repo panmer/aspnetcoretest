@@ -1,0 +1,70 @@
+@model gcsharpRPC.Pages.Shared._PollOptionTableModel
+@{
+    // var poll = Model.Poll is null ? "NULL" : "NOTNULL"; 
+    var orderedPollOptions = Model.Poll.Options.ToArray();
+    var maxVoteAmount = orderedPollOptions.Max(poll => poll.UserVotes.Count());
+    var optionsWithMaxVotesAmount = orderedPollOptions.Where(poll => poll.UserVotes.Count() == maxVoteAmount).Count();
+}
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <th></th>
+            @foreach (var pollOption in orderedPollOptions)
+            {
+                <th scope="col">
+                    <div class="d-flex justify-content-center">
+                        <div class="card mb-3 d-inline-block text-center border-secondary">
+                            <div class="card-header">
+                                <p>@pollOption.Date.ToString("MMMM")</p>
+                                <p class="card-text text-center">@pollOption.Date.ToString("dddd") - @pollOption.Date.Day</p>
+                            </div>
+                            <div class="card-body text-dark">
+                                @{
+                                    var userVoteStyle = "";
+                                    var userVotes = pollOption.UserVotes.Count();
+                                    if (userVotes == maxVoteAmount && maxVoteAmount > 0)
+                                    {
+                                       userVoteStyle = optionsWithMaxVotesAmount == 1 ? "text-success" : "text-warning";
+                                    }
+                                    <p class="card-text text-center @userVoteStyle"><i class="bi bi-people-fill"></i> @pollOption.UserVotes.Count()</p>
+                                }
+                                @if (!Model.IsReadOnly && !Model.Poll.CloseDate.HasValue)
+                                {
+                                    <input class="card-text form-check-input" type="checkbox" name="SelectedPollOptionIds" value="@(pollOption.Id)" />
+                                }
+                            </div>
+                            <div class="card-header">
+                                <p>@pollOption.StartTime</p>
+                                <p>to</p>
+                                <p>@pollOption.EndTime</p>
+                            </div>
+                        </div>
+                    </div>
+                </th>
+            }
+        </thead>
+        <tbody>
+            @foreach (var userVote in Model.Poll.UserVotes)
+            {
+                <tr>
+                    <td>@userVote.Name</td>
+                    @foreach (var pollOption in orderedPollOptions)
+                    {
+                        var hasVoted = userVote.Options.Any(x => x == pollOption);
+                        var tdStyle = hasVoted ? "table-success" : "table-warning";
+                        <td class="text-center @tdStyle">
+                            @if (hasVoted)
+                            {
+                                <i class="bi bi-check"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-x"></i>
+                            }
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,137 @@
+﻿@page
+@model gcsharpRPC.Pages.Polls.CreatePollPageModel
+@{
+    ViewData["Title"] = "Create Events";
+}
+<h1>Create An Event</h1>
+
+<form method="POST">
+    <div class="form-group">
+        <label asp-for="Poll.Title"></label>
+        <input type="text" asp-for="Poll.Title" class="form-control" />
+        <span asp-validation-for="Poll.Title" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Poll.Location"></label>
+        <input type="text" asp-for="Poll.Location" class="form-control" />
+        <span asp-validation-for="Poll.Location" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Poll.CloseDate">Close Date(mm/dd/yy)</label>
+        <input id="clsDate" type="date" asp-for="Poll.CloseDate" class="form-control" />
+    </div>
+
+    <div style="height:20px;"></div>
+
+    <h5>Add poll options</h5>
+    <div class="form-group">
+        <label for="fromDate">From(mm/dd/yy)</label>
+        <input id="fromDate" type="date" class="form-control" />
+    </div>
+    <div class="form-group mb-2">
+        <label for="toDate">To(mm/dd/yy)</label>
+        <input id="toDate" type="date" class="form-control" />
+    </div>
+    <button type="button" class="btn btn-outline-primary btn-sm mb-3" onclick="addOptions()">Add options</button>
+    
+    <h5>Poll options</h5>
+    <div id="option-container">
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-sm mt-2 mb-2">Create</button>
+</form>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const fromDateCtl = document.getElementById("fromDate");
+        const toDateCtl = document.getElementById("toDate");
+
+        const currentDate = new Date();
+        fromDateCtl.valueAsDate = currentDate;
+        toDateCtl.valueAsDate = currentDate;
+
+        const next7days = new Date();
+        next7days.setDate(currentDate.getDate() + 7);
+        document.getElementById("clsDate").valueAsDate = next7days;
+
+        fromDateCtl.addEventListener("change", () => {
+            const fromDate = fromDateCtl.valueAsDate;
+            const toDate = toDateCtl.valueAsDate;
+
+            if (toDate < fromDate)
+                toDateCtl.value = fromDateCtl.value;
+        });
+    });  
+    function addOptions() {
+        const fromDate = document.getElementById("fromDate").valueAsDate;
+        const toDate = document.getElementById("toDate").valueAsDate;
+
+        let existingValues = $("#option-container > div >  input")
+            .map((_i, option) => option.valueAsDate.toString())
+            .get();
+        
+        for (let currentDate = fromDate; currentDate <= toDate; currentDate.setDate(currentDate.getDate() + 1)) {
+            if (!existingValues.includes(currentDate.toString()))
+                addOption(currentDate);
+        }
+        
+        reorderPollOptions();
+    }
+    function addOption(value) {
+        // const defaultStartTime = "00:00";
+        // const defaultEndTime = "24:59";
+
+        const container = document.createElement("div");
+        container.className = "poll-option d-flex mb-1";
+
+        let input = document.createElement("input");
+        input.className = "form-control date-option";
+        input.name = "PollOptionDates";
+        input.type = "date";
+        input.valueAsDate = value;
+        input.addEventListener("change", reorderPollOptions);
+        container.append(input);
+
+        input = document.createElement("input");
+        input.className = "form-control time-option";
+        input.name = "PollOptionStartTimes";
+        // input.value = defaultStartTime;
+        // input.addEventListener("change", reorderPollOptions);
+        container.append(input);
+
+        input = document.createElement("input");
+        input.className = "form-control time-option";
+        input.name = "PollOptionEndTimes";
+        // input.value = defaultEndTime;
+        // input.addEventListener("change", reorderPollOptions);
+        container.append(input);
+
+        const delButton = document.createElement("button");
+        delButton.className = "btn btn-outline-danger btn-sm ms-1";
+        delButton.textContent = "Remove";
+        delButton.type = "button";
+        delButton.addEventListener("click", function() {
+            $(".time-option").each(function() {
+                console.log("++ " + $(this).value);
+            });
+            container.remove()
+        });
+        container.append(delButton);
+        
+        document.getElementById("option-container").append(container);
+
+        $(".time-option").each(function() {
+            console.log("--> " + $(this).val());
+            $(this).timepicker();
+        });
+    }
+    function reorderPollOptions() {
+        $("#option-container > .date-option").sort(function(a, b) {
+            const dateA = a.childNodes[0].valueAsDate;
+            const dateB = b.childNodes[0].valueAsDate;
+
+            return dateA - dateB;
+        }).appendTo($("#option-container"));
+    }
+</script>
